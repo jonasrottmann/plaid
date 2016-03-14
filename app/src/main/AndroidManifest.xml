@@ -89,6 +89,15 @@
         </activity>
 
         <activity
+            android:name=".ui.HackerNewsStory"
+            android:parentActivityName=".ui.HomeActivity"
+            android:theme="@style/Plaid.Translucent.HackerNewsStory">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.HomeActivity" />
+        </activity>
+
+        <activity
             android:name=".ui.SearchActivity"
             android:launchMode="singleTop"
             android:theme="@style/Plaid.Translucent.Search">

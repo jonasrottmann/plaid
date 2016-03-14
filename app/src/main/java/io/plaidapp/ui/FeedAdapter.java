@@ -69,8 +69,9 @@ import io.plaidapp.data.api.designernews.model.Story;
 import io.plaidapp.data.api.dribbble.PlayerShotsDataManager;
 import io.plaidapp.data.api.dribbble.ShotWeigher;
 import io.plaidapp.data.api.dribbble.model.Shot;
+import io.plaidapp.data.api.hackernews.HackerNewsService;
 import io.plaidapp.data.api.hackernews.TopStoryWeigher;
-import io.plaidapp.data.api.hackernews.model.TopStory;
+import io.plaidapp.data.api.hackernews.model.Item;
 import io.plaidapp.data.api.producthunt.PostWeigher;
 import io.plaidapp.data.api.producthunt.model.Post;
 import io.plaidapp.data.pocket.PocketUtils;
@@ -183,7 +184,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 bindProductHuntPostView((Post) getItem(position), (ProductHuntStoryHolder) holder);
                 break;
             case TYPE_HACKER_NEWS_STORY:
-                bindHackerNewsStoryView((TopStory) getItem(position), (HackerNewsStoryHolder) holder);
+                bindHackerNewsStoryView((Item) getItem(position), (HackerNewsStoryHolder) holder);
                 break;
             case TYPE_LOADING_MORE:
                 bindLoadingViewHolder((LoadingMoreHolder) holder);
@@ -426,13 +427,23 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                         new CustomTabsIntent.Builder()
                                 .setToolbarColor(ContextCompat.getColor(host, R.color.hacker_news))
                                 .build(),
-                        Uri.parse(((TopStory) getItem(holder.getAdapterPosition())).url));
+                        Uri.parse(((Item) getItem(holder.getAdapterPosition())).url));
             }
         });
         holder.comments.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO
+                final Intent intent = new Intent();
+                intent.setClass(host, HackerNewsStory.class);
+                intent.putExtra(HackerNewsStory.EXTRA_STORY, (Item) getItem(holder.getAdapterPosition()));
+                setGridItemContentTransitions(holder.itemView);
+                final ActivityOptions options =
+                        ActivityOptions.makeSceneTransitionAnimation(host,
+                                Pair.create(holder.itemView,
+                                        host.getString(R.string.transition_story_title_background)),
+                                Pair.create(holder.itemView,
+                                        host.getString(R.string.transition_story_background)));
+                host.startActivity(intent, options.toBundle());
             }
         });
         holder.score.setOnClickListener(new View.OnClickListener() {
@@ -450,7 +461,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         holder.comments.setText(String.valueOf(item.comments_count));
     }
 
-    private void bindHackerNewsStoryView(final TopStory item, HackerNewsStoryHolder holder) {
+    private void bindHackerNewsStoryView(final Item item, HackerNewsStoryHolder holder) {
         holder.title.setText(item.title);
         holder.comments.setText(String.valueOf(item.descendants));
         holder.score.setText(String.valueOf(item.score));
@@ -474,7 +485,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 return TYPE_DRIBBBLE_SHOT;
             } else if (item instanceof Post) {
                 return TYPE_PRODUCT_HUNT_POST;
-            } else if (item instanceof TopStory) {
+            } else if (item instanceof Item) {
                 return TYPE_HACKER_NEWS_STORY;
             }
         }
@@ -547,7 +558,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 } else if (items.get(0) instanceof Post) {
                     if (postWeigher == null) postWeigher = new PostWeigher();
                     weigher = postWeigher;
-                } else if (items.get(0) instanceof TopStory) {
+                } else if (items.get(0) instanceof Item) {
                     if (topStoryWeigher == null) topStoryWeigher = new TopStoryWeigher();
                     weigher = topStoryWeigher;
                 }

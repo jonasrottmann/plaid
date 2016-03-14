@@ -20,21 +20,21 @@ import java.util.List;
 
 import io.plaidapp.data.PlaidItemSorting;
 import io.plaidapp.data.api.designernews.model.Story;
-import io.plaidapp.data.api.hackernews.model.TopStory;
+import io.plaidapp.data.api.hackernews.model.Item;
 
 /**
  * Utility class for applying weights to a group of {@link Story}s for sorting. Weighs stories
  * relative to the most upvoted & commented stories in the group.
  */
-public class TopStoryWeigher implements PlaidItemSorting.PlaidItemGroupWeigher<TopStory> {
+public class TopStoryWeigher implements PlaidItemSorting.PlaidItemGroupWeigher<Item> {
 
     @Override
-    public void weigh(List<TopStory> stories) {
+    public void weigh(List<Item> stories) {
         float maxScore = 0f;
-        for (TopStory story : stories) {
+        for (Item story : stories) {
             maxScore = Math.max(maxScore, story.score);
         }
-        for (TopStory story : stories) {
+        for (Item story : stories) {
             float weight = 1f - ((float) story.score / maxScore);
             story.weight = story.page + weight;
         }

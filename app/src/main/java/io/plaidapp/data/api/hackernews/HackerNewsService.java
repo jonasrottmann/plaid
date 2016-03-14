@@ -3,7 +3,7 @@ package io.plaidapp.data.api.hackernews;
 
 import java.util.List;
 
-import io.plaidapp.data.api.hackernews.model.TopStory;
+import io.plaidapp.data.api.hackernews.model.Item;
 import retrofit.Callback;
 import retrofit.http.GET;
 import retrofit.http.Path;
@@ -23,8 +23,8 @@ public interface HackerNewsService {
     Observable<List<Long>> getTopstories();
 
     @GET("/item/{itemId}.json")
-    void getStory(@Path("itemId") Long itemId, Callback<TopStory> callback);
+    void getStory(@Path("itemId") Long itemId, Callback<Item> callback);
 
     @GET("/item/{itemId}.json")
-    Observable<TopStory> getStory(@Path("itemId") Long itemId);
+    Observable<Item> getStory(@Path("itemId") Long itemId);
 }

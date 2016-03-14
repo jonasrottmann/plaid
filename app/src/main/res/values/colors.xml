@@ -98,6 +98,8 @@
 
     <!-- hacker news -->
     <color name="hacker_news">#FF6602</color>
+    <color name="hacker_news_dark">#bc4b00</color>
+    <color name="hacker_news_super_dark">#491d00</color>
 
     <!-- search -->
     <color name="search_background_scrim">#33000000</color>

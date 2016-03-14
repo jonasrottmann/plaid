@@ -31,7 +31,7 @@ import io.plaidapp.data.api.dribbble.DribbbleService;
 import io.plaidapp.data.api.dribbble.model.Like;
 import io.plaidapp.data.api.dribbble.model.Shot;
 import io.plaidapp.data.api.dribbble.model.User;
-import io.plaidapp.data.api.hackernews.model.TopStory;
+import io.plaidapp.data.api.hackernews.model.Item;
 import io.plaidapp.data.api.producthunt.model.PostsResponse;
 import io.plaidapp.data.prefs.SourceManager;
 import io.plaidapp.ui.FilterAdapter;
@@ -429,17 +429,17 @@ public abstract class DataManager extends BaseDataManager {
                 })
                 .skip((page - 1) * PAGESIZE)
                 .take(PAGESIZE)
-                .flatMap(new Func1<Long, Observable<TopStory>>() {
+                .flatMap(new Func1<Long, Observable<Item>>() {
                     @Override
-                    public Observable<TopStory> call(Long aLong) {
+                    public Observable<Item> call(Long aLong) {
                         return getHackerNewsApi().getStory(aLong);
                     }
                 })
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<TopStory>() {
+                .subscribe(new Action1<Item>() {
                     @Override
-                    public void call(TopStory o) {
+                    public void call(Item o) {
                         stories.add(o);
                     }
                 }, new Action1<Throwable>() {
