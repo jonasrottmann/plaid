@@ -69,6 +69,8 @@ import io.plaidapp.data.api.designernews.model.Story;
 import io.plaidapp.data.api.dribbble.PlayerShotsDataManager;
 import io.plaidapp.data.api.dribbble.ShotWeigher;
 import io.plaidapp.data.api.dribbble.model.Shot;
+import io.plaidapp.data.api.hackernews.TopStoryWeigher;
+import io.plaidapp.data.api.hackernews.model.TopStory;
 import io.plaidapp.data.api.producthunt.PostWeigher;
 import io.plaidapp.data.api.producthunt.model.Post;
 import io.plaidapp.data.pocket.PocketUtils;
@@ -86,11 +88,12 @@ import static io.plaidapp.util.AnimUtils.getFastOutSlowInInterpolator;
  * Adapter for displaying a grid of {@link PlaidItem}s.
  */
 public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
-                         implements DataLoadingSubject.DataLoadingCallbacks {
+        implements DataLoadingSubject.DataLoadingCallbacks {
 
     private static final int TYPE_DESIGNER_NEWS_STORY = 0;
     private static final int TYPE_DRIBBBLE_SHOT = 1;
     private static final int TYPE_PRODUCT_HUNT_POST = 2;
+    private static final int TYPE_HACKER_NEWS_STORY = 3;
     private static final int TYPE_LOADING_MORE = -1;
 
     // we need to hold on to an activity ref for the shared element transitions :/
@@ -98,10 +101,14 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private final LayoutInflater layoutInflater;
     private final PlaidItemSorting.PlaidItemComparator comparator;
     private final boolean pocketIsInstalled;
-    private final @Nullable DataLoadingSubject dataLoading;
+    private final
+    @Nullable
+    DataLoadingSubject dataLoading;
     private final int columns;
     private final ColorDrawable[] shotLoadingPlaceholders;
-    private final @ColorInt int initialGifBadgeColor;
+    private final
+    @ColorInt
+    int initialGifBadgeColor;
 
     private List<PlaidItem> items;
     private boolean showLoadingMore = false;
@@ -109,6 +116,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private ShotWeigher shotWeigher;
     private StoryWeigher storyWeigher;
     private PostWeigher postWeigher;
+    private TopStoryWeigher topStoryWeigher;
 
     public FeedAdapter(Activity hostActivity,
                        DataLoadingSubject dataLoading,
@@ -135,7 +143,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 shotLoadingPlaceholders[i] = new ColorDrawable(placeholderColors[i]);
             }
         } else {
-            shotLoadingPlaceholders = new ColorDrawable[] { new ColorDrawable(Color.DKGRAY) };
+            shotLoadingPlaceholders = new ColorDrawable[]{new ColorDrawable(Color.DKGRAY)};
         }
         final int initialGifBadgeColorId =
                 a.getResourceId(R.styleable.DribbbleFeed_initialBadgeColor, 0);
@@ -153,6 +161,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 return createDribbbleShotHolder(parent);
             case TYPE_PRODUCT_HUNT_POST:
                 return createProductHuntStoryHolder(parent);
+            case TYPE_HACKER_NEWS_STORY:
+                return createHackerNewsStoryHolder(parent);
             case TYPE_LOADING_MORE:
                 return new LoadingMoreHolder(
                         layoutInflater.inflate(R.layout.infinite_loading, parent, false));
@@ -171,6 +181,9 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 break;
             case TYPE_PRODUCT_HUNT_POST:
                 bindProductHuntPostView((Post) getItem(position), (ProductHuntStoryHolder) holder);
+                break;
+            case TYPE_HACKER_NEWS_STORY:
+                bindHackerNewsStoryView((TopStory) getItem(position), (HackerNewsStoryHolder) holder);
                 break;
             case TYPE_LOADING_MORE:
                 bindLoadingViewHolder((LoadingMoreHolder) holder);
@@ -204,7 +217,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                                 Uri.parse(story.url));
                     }
                 }
-                                          );
+        );
         holder.comments.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View commentsView) {
@@ -401,10 +414,46 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         return holder;
     }
 
+    @NonNull
+    private HackerNewsStoryHolder createHackerNewsStoryHolder(ViewGroup parent) {
+        final HackerNewsStoryHolder holder = new HackerNewsStoryHolder(
+                layoutInflater.inflate(R.layout.hacker_news_item, parent, false));
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CustomTabActivityHelper.openCustomTab(
+                        host,
+                        new CustomTabsIntent.Builder()
+                                .setToolbarColor(ContextCompat.getColor(host, R.color.hacker_news))
+                                .build(),
+                        Uri.parse(((TopStory) getItem(holder.getAdapterPosition())).url));
+            }
+        });
+        holder.comments.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO
+            }
+        });
+        holder.score.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO
+            }
+        });
+        return holder;
+    }
+
     private void bindProductHuntPostView(final Post item, ProductHuntStoryHolder holder) {
         holder.title.setText(item.name);
         holder.tagline.setText(item.tagline);
         holder.comments.setText(String.valueOf(item.comments_count));
+    }
+
+    private void bindHackerNewsStoryView(final TopStory item, HackerNewsStoryHolder holder) {
+        holder.title.setText(item.title);
+        holder.comments.setText(String.valueOf(item.descendants));
+        holder.score.setText(String.valueOf(item.score));
     }
 
     private void bindLoadingViewHolder(LoadingMoreHolder holder) {
@@ -425,6 +474,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 return TYPE_DRIBBBLE_SHOT;
             } else if (item instanceof Post) {
                 return TYPE_PRODUCT_HUNT_POST;
+            } else if (item instanceof TopStory) {
+                return TYPE_HACKER_NEWS_STORY;
             }
         }
         return TYPE_LOADING_MORE;
@@ -496,6 +547,9 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 } else if (items.get(0) instanceof Post) {
                     if (postWeigher == null) postWeigher = new PostWeigher();
                     weigher = postWeigher;
+                } else if (items.get(0) instanceof TopStory) {
+                    if (topStoryWeigher == null) topStoryWeigher = new TopStoryWeigher();
+                    weigher = topStoryWeigher;
                 }
         }
         weigher.weigh(items);
@@ -621,7 +675,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
      * Which ViewHolder types require a divider decoration
      */
     public Class[] getDividedViewHolderClasses() {
-        return new Class[] { DesignerNewsStoryHolder.class, ProductHuntStoryHolder.class };
+        return new Class[]{DesignerNewsStoryHolder.class, ProductHuntStoryHolder.class};
     }
 
     @Override
@@ -652,9 +706,12 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     /* package */ static class DesignerNewsStoryHolder extends RecyclerView.ViewHolder {
 
-        @Bind(R.id.story_title) TextView title;
-        @Bind(R.id.story_comments) TextView comments;
-        @Bind(R.id.pocket) ImageButton pocket;
+        @Bind(R.id.story_title)
+        TextView title;
+        @Bind(R.id.story_comments)
+        TextView comments;
+        @Bind(R.id.pocket)
+        ImageButton pocket;
 
         public DesignerNewsStoryHolder(View itemView, boolean pocketIsInstalled) {
             super(itemView);
@@ -665,9 +722,12 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     /* package */ static class ProductHuntStoryHolder extends RecyclerView.ViewHolder {
 
-        @Bind(R.id.hunt_title) TextView title;
-        @Bind(R.id.tagline) TextView tagline;
-        @Bind(R.id.story_comments) TextView comments;
+        @Bind(R.id.hunt_title)
+        TextView title;
+        @Bind(R.id.tagline)
+        TextView tagline;
+        @Bind(R.id.story_comments)
+        TextView comments;
 
         public ProductHuntStoryHolder(View itemView) {
             super(itemView);
@@ -675,7 +735,22 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
     }
 
-    /* package */ static class LoadingMoreHolder extends RecyclerView.ViewHolder {
+    /* package */ class HackerNewsStoryHolder extends RecyclerView.ViewHolder {
+
+        @Bind(R.id.topstory_title)
+        TextView title;
+        @Bind(R.id.topstory_comments)
+        TextView comments;
+        @Bind(R.id.topstory_score)
+        TextView score;
+
+        public HackerNewsStoryHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+        }
+    }
+
+    /* package */ class LoadingMoreHolder extends RecyclerView.ViewHolder {
 
         ProgressBar progress;
 

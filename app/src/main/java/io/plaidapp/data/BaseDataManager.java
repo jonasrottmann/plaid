@@ -29,6 +29,7 @@ import io.plaidapp.data.api.AuthInterceptor;
 import io.plaidapp.data.api.ClientAuthInterceptor;
 import io.plaidapp.data.api.designernews.DesignerNewsService;
 import io.plaidapp.data.api.dribbble.DribbbleService;
+import io.plaidapp.data.api.hackernews.HackerNewsService;
 import io.plaidapp.data.api.producthunt.ProductHuntService;
 import io.plaidapp.data.prefs.DesignerNewsPrefs;
 import io.plaidapp.data.prefs.DribbblePrefs;
@@ -41,7 +42,7 @@ import retrofit.converter.GsonConverter;
 public abstract class BaseDataManager implements
         DataLoadingSubject,
         DribbblePrefs.DribbbleLoginStatusListener,
-        DesignerNewsPrefs.DesignerNewsLoginStatusListener{
+        DesignerNewsPrefs.DesignerNewsLoginStatusListener {
 
     private DesignerNewsPrefs designerNewsPrefs;
     private DesignerNewsService designerNewsApi;
@@ -50,6 +51,7 @@ public abstract class BaseDataManager implements
     private ProductHuntService productHuntApi;
     private AtomicInteger loadingCount;
     private List<DataLoadingSubject.DataLoadingCallbacks> loadingCallbacks;
+    private HackerNewsService hackerNewsApi;
 
     public BaseDataManager(Context context) {
         // setup the API access objects
@@ -58,6 +60,7 @@ public abstract class BaseDataManager implements
         dribbblePrefs = DribbblePrefs.get(context);
         createDribbbleApi();
         createProductHuntApi();
+        createHackerNewsApi();
         loadingCount = new AtomicInteger(0);
     }
 
@@ -194,4 +197,14 @@ public abstract class BaseDataManager implements
         createDesignerNewsApi(); // clear the auth token
     }
 
+    private void createHackerNewsApi() {
+        hackerNewsApi = new RestAdapter.Builder()
+                .setEndpoint(HackerNewsService.ENDPOINT)
+                .build()
+                .create(HackerNewsService.class);
+    }
+
+    public HackerNewsService getHackerNewsApi() {
+        return hackerNewsApi;
+    }
 }

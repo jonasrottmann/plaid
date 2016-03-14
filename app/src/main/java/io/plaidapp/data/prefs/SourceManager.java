@@ -44,6 +44,7 @@ public class SourceManager {
     public static final String SOURCE_DRIBBBLE_DEBUTS = "SOURCE_DRIBBBLE_DEBUTS";
     public static final String SOURCE_DRIBBBLE_ANIMATED = "SOURCE_DRIBBBLE_ANIMATED";
     public static final String SOURCE_PRODUCT_HUNT = "SOURCE_PRODUCT_HUNT";
+    public static final String SOURCE_HACKER_NEWS = "SOURCE_HACKER_NEWS";
     private static final String SOURCES_PREF = "SOURCES_PREF";
     private static final String KEY_SOURCES = "KEY_SOURCES";
 
@@ -151,6 +152,9 @@ public class SourceManager {
         defaultSources.add(new Source(SOURCE_PRODUCT_HUNT, 500,
                 context.getString(R.string.source_product_hunt),
                 R.drawable.ic_product_hunt, false));
+        defaultSources.add(new Source(SOURCE_HACKER_NEWS, 600,
+                context.getString(R.string.source_hacker_news),
+                R.drawable.ic_hacker_news, false));
         return defaultSources;
     }
 

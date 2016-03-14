@@ -18,6 +18,7 @@ package io.plaidapp.data;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,12 +31,19 @@ import io.plaidapp.data.api.dribbble.DribbbleService;
 import io.plaidapp.data.api.dribbble.model.Like;
 import io.plaidapp.data.api.dribbble.model.Shot;
 import io.plaidapp.data.api.dribbble.model.User;
+import io.plaidapp.data.api.hackernews.model.TopStory;
 import io.plaidapp.data.api.producthunt.model.PostsResponse;
 import io.plaidapp.data.prefs.SourceManager;
 import io.plaidapp.ui.FilterAdapter;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 /**
  * Responsible for loading data from the various sources. Instantiating classes are responsible for
@@ -62,16 +70,16 @@ public abstract class DataManager extends BaseDataManager {
 
     private FilterAdapter.FiltersChangedCallbacks filterListener =
             new FilterAdapter.FiltersChangedCallbacks() {
-        @Override
-        public void onFiltersChanged(Source changedFilter) {
-            if (changedFilter.active) {
-                loadSource(changedFilter);
-            } else {
-                // clear the page index for the source
-                pageIndexes.put(changedFilter.key, 0);
-            }
-        }
-    };
+                @Override
+                public void onFiltersChanged(Source changedFilter) {
+                    if (changedFilter.active) {
+                        loadSource(changedFilter);
+                    } else {
+                        // clear the page index for the source
+                        pageIndexes.put(changedFilter.key, 0);
+                    }
+                }
+            };
 
     private void loadSource(Source source) {
         if (source.active) {
@@ -107,6 +115,9 @@ public abstract class DataManager extends BaseDataManager {
                     break;
                 case SourceManager.SOURCE_PRODUCT_HUNT:
                     loadProductHunt(page);
+                    break;
+                case SourceManager.SOURCE_HACKER_NEWS:
+                    loadHackerNews(page);
                     break;
                 default:
                     if (source instanceof Source.DribbbleSearchSource) {
@@ -205,81 +216,81 @@ public abstract class DataManager extends BaseDataManager {
     private void loadDribbblePopular(final int page) {
         getDribbbleApi().getPopular(page, DribbbleService.PER_PAGE_DEFAULT, new
                 Callback<List<Shot>>() {
-            @Override
-            public void success(List<Shot> shots, Response response) {
-                loadFinished();
-                if (sourceIsEnabled(SourceManager.SOURCE_DRIBBBLE_POPULAR)) {
-                    setPage(shots, page);
-                    setDataSource(shots, SourceManager.SOURCE_DRIBBBLE_POPULAR);
-                    onDataLoaded(shots);
-                }
-            }
+                    @Override
+                    public void success(List<Shot> shots, Response response) {
+                        loadFinished();
+                        if (sourceIsEnabled(SourceManager.SOURCE_DRIBBBLE_POPULAR)) {
+                            setPage(shots, page);
+                            setDataSource(shots, SourceManager.SOURCE_DRIBBBLE_POPULAR);
+                            onDataLoaded(shots);
+                        }
+                    }
 
-            @Override
-            public void failure(RetrofitError error) {
-                loadFinished();
-            }
-        });
+                    @Override
+                    public void failure(RetrofitError error) {
+                        loadFinished();
+                    }
+                });
     }
 
     private void loadDribbbleDebuts(final int page) {
         getDribbbleApi().getDebuts(page, DribbbleService.PER_PAGE_DEFAULT, new
                 Callback<List<Shot>>() {
-            @Override
-            public void success(List<Shot> shots, Response response) {
-                loadFinished();
-                if (sourceIsEnabled(SourceManager.SOURCE_DRIBBBLE_DEBUTS)) {
-                    setPage(shots, page);
-                    setDataSource(shots, SourceManager.SOURCE_DRIBBBLE_DEBUTS);
-                    onDataLoaded(shots);
-                }
-            }
+                    @Override
+                    public void success(List<Shot> shots, Response response) {
+                        loadFinished();
+                        if (sourceIsEnabled(SourceManager.SOURCE_DRIBBBLE_DEBUTS)) {
+                            setPage(shots, page);
+                            setDataSource(shots, SourceManager.SOURCE_DRIBBBLE_DEBUTS);
+                            onDataLoaded(shots);
+                        }
+                    }
 
-            @Override
-            public void failure(RetrofitError error) {
-                loadFinished();
-            }
-        });
+                    @Override
+                    public void failure(RetrofitError error) {
+                        loadFinished();
+                    }
+                });
     }
 
     private void loadDribbbleAnimated(final int page) {
         getDribbbleApi().getAnimated(page, DribbbleService.PER_PAGE_DEFAULT, new
                 Callback<List<Shot>>() {
-            @Override
-            public void success(List<Shot> shots, Response response) {
-                loadFinished();
-                if (sourceIsEnabled(SourceManager.SOURCE_DRIBBBLE_ANIMATED)) {
-                    setPage(shots, page);
-                    setDataSource(shots, SourceManager.SOURCE_DRIBBBLE_ANIMATED);
-                    onDataLoaded(shots);
-                }
-            }
+                    @Override
+                    public void success(List<Shot> shots, Response response) {
+                        loadFinished();
+                        if (sourceIsEnabled(SourceManager.SOURCE_DRIBBBLE_ANIMATED)) {
+                            setPage(shots, page);
+                            setDataSource(shots, SourceManager.SOURCE_DRIBBBLE_ANIMATED);
+                            onDataLoaded(shots);
+                        }
+                    }
 
-            @Override
-            public void failure(RetrofitError error) {
-                loadFinished();
-            }
-        });
+                    @Override
+                    public void failure(RetrofitError error) {
+                        loadFinished();
+                    }
+                });
     }
 
     private void loadDribbbleRecent(final int page) {
         getDribbbleApi().getRecent(page, DribbbleService.PER_PAGE_DEFAULT, new
                 Callback<List<Shot>>() {
-            @Override
-            public void success(List<Shot> shots, Response response) {
-                loadFinished();
-                if (sourceIsEnabled(SourceManager.SOURCE_DRIBBBLE_RECENT)) {
-                    setPage(shots, page);
-                    setDataSource(shots, SourceManager.SOURCE_DRIBBBLE_RECENT);
-                    onDataLoaded(shots);
-                }
-            }
+                    @Override
+                    public void success(List<Shot> shots, Response response) {
+                        loadFinished();
+                        if (sourceIsEnabled(SourceManager.SOURCE_DRIBBBLE_RECENT)) {
+                            setPage(shots, page);
+                            setDataSource(shots, SourceManager.SOURCE_DRIBBBLE_RECENT);
+                            onDataLoaded(shots);
+                        }
+                    }
 
-            @Override
-            public void failure(RetrofitError error) {
-                loadFinished();
-            }
-        });
+                    @Override
+                    public void failure(RetrofitError error) {
+                        loadFinished();
+                    }
+                });
     }
 
     private void loadDribbbleFollowing(final int page) {
@@ -403,5 +414,49 @@ public abstract class DataManager extends BaseDataManager {
                 loadFinished();
             }
         });
+    }
+
+    private void loadHackerNews(final int page) {
+        final int PAGESIZE = 10;
+        final List<PlaidItem> stories = new ArrayList<>();
+        getHackerNewsApi()
+                .getTopstories()
+                .flatMap(new Func1<List<Long>, Observable<Long>>() {
+                    @Override
+                    public Observable<Long> call(List<Long> storyIds) {
+                        return Observable.from(storyIds);
+                    }
+                })
+                .skip((page - 1) * PAGESIZE)
+                .take(PAGESIZE)
+                .flatMap(new Func1<Long, Observable<TopStory>>() {
+                    @Override
+                    public Observable<TopStory> call(Long aLong) {
+                        return getHackerNewsApi().getStory(aLong);
+                    }
+                })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<TopStory>() {
+                    @Override
+                    public void call(TopStory o) {
+                        stories.add(o);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        Log.d(DataManager.class.getSimpleName(), throwable.toString());
+                    }
+                }, new Action0() {
+                    @Override
+                    public void call() {
+                        loadFinished();
+                        if (stories != null && sourceIsEnabled(SourceManager.SOURCE_HACKER_NEWS)) {
+                            setPage(stories, page);
+                            setDataSource(stories, SourceManager.SOURCE_PRODUCT_HUNT);
+                            onDataLoaded(stories);
+                        }
+                    }
+                });
     }
 }

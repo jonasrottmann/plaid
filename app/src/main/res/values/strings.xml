@@ -52,6 +52,7 @@
     <string name="source_dribbble_animated">Dribbble Animated</string>
     <string name="source_dribbble_search_material_design">Material Design</string>
     <string name="source_product_hunt">Product Hunt</string>
+    <string name="source_hacker_news">Hacker News</string>
 
     <!-- Search -->
     <string name="search_hint">Search Dribbble &amp; Designer News</string>

@@ -93,8 +93,11 @@
     </array>
 
 
-    <!-- product hunt-->
+    <!-- product hunt -->
     <color name="product_hunt">#ffff9800</color>
+
+    <!-- hacker news -->
+    <color name="hacker_news">#FF6602</color>
 
     <!-- search -->
     <color name="search_background_scrim">#33000000</color>
